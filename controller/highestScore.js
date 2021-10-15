@@ -1,20 +1,30 @@
 const knex = require('../model/connection')
-module.exports.average = (req, res) => {
+module.exports.highestScore = (req, res) => {
     knex('candidate')
     .join('condidate_test_score', 'candidate.id', '=', 'condidate_test_score.id')
-    //.where('candidate.id', req.params.id)
     .select('candidate.id', 'name','condidate_test_score.first_round', 'second_round', 'third_round')
     .then((candidateData) => {
         let i = 0
         let sum = 0
+        let scoresObj = {}
+        let scores = []
         while(i<candidateData.length) {
             sum = sum + candidateData[i]['first_round'] + candidateData[i]['second_round'] + candidateData[i]['third_round']
-            let average = Math.floor(sum/3)
-            candidateData[i]['Average'] = average
+            scores.push(sum)
+            scoresObj[candidateData[i]['name']] = sum
             sum = 0
             i++
         }
-        res.send(candidateData)
+        let highestScore = Math.max(...scores)
+        for(i in scoresObj) {
+            var value = scoresObj[i]
+            if(value == highestScore) {
+                break;
+            }
+        }
+        let obj = {}
+        obj[i] = highestScore
+        res.send(obj)
     }).catch((err) => {
         res.send(err)
     });
